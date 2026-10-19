@@ -13,19 +13,19 @@ from RK4 import rk4
 # Настройки
 # ============================================================
 
-h = 0.0001
+h = 0.001
 
 u0 = np.array([0.1, 0.1, 0.1], dtype=float)
 
 start_params = (1.0, 1.0, 1.0)
 
-N = 1_000_000
-transient = 0.5  # доля траектории, отбрасываемая как переходный процесс
+N = 2_000_000
+transient = 0.6  # доля траектории, отбрасываемая как переходный процесс
 MAX_PEAKS = 2000  # максимум сохраняемых максимумов на одно значение параметра
 
-a1_values = np.linspace(-0.2, 1.5, 1000)
-a2_values = np.linspace(-0.1, 3.0, 1000)
-a3_values = np.linspace(-0.2, 1.5, 1000)
+a1_values = np.linspace(0, 1.5, 1000)
+a2_values = np.linspace(0, 3.0, 1000)
+a3_values = np.linspace(0, 1.5, 1000)
 
 save_folder = "bifurcation_plots"
 
@@ -177,7 +177,7 @@ def plot_bifurcation(method_name, parameter_name, params,
     plt.xlabel(parameter_name)
     plt.ylabel(f"Экстремумы {var_name}")
     plt.title(
-        f"Sprott Case C: {parameter_name}, {method_name} и RK4 "
+        f"Sprott Case B: {parameter_name}, {method_name} и RK4 "
         f"(переменная {var_name})"
     )
     plt.legend(loc="best", markerscale=6)
@@ -185,7 +185,7 @@ def plot_bifurcation(method_name, parameter_name, params,
     plt.ylim(*ylim)
 
     filepath = os.path.join(
-        save_folder, folder, f"Case_C_{parameter_name}_{method_name}.png"
+        save_folder, folder, f"Case_B_{parameter_name}_{method_name}.png"
     )
     plt.savefig(filepath, dpi=300, bbox_inches="tight")
     plt.close()
