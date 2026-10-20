@@ -20,7 +20,7 @@ u0 = np.array([0.1, 0.1, 0.1], dtype=float)
 start_params = (1.0, 1.0, 1.0)
 
 N = 2_000_000
-transient = 0.6  # доля траектории, отбрасываемая как переходный процесс
+transient = 0.6
 MAX_PEAKS = 2000  # максимум сохраняемых максимумов на одно значение параметра
 
 a1_values = np.linspace(0, 1.5, 1000)
@@ -29,7 +29,6 @@ a3_values = np.linspace(0, 1.5, 1000)
 
 save_folder = "bifurcation_plots"
 
-# Переменные: (индекс столбца решения, имя, подпапка, пределы по оси Y)
 variables = [
     (0, "x", "X", (-2, 4)),
     (1, "y", "Y", (-2, 4)),
@@ -39,12 +38,6 @@ variables = [
 for _, _, folder, _ in variables:
     os.makedirs(os.path.join(save_folder, folder), exist_ok=True)
 
-
-# ============================================================
-# Система уравнений: Sprott Case C
-#   x' = a1*y*z,  y' = x - a2*y,  z' = a3 - x^2
-# (должна быть njit, чтобы её могли вызывать скомпилированные методы)
-# ============================================================
 
 @njit(cache=True)
 def f(u, a1, a2, a3):
@@ -59,8 +52,6 @@ def f(u, a1, a2, a3):
     ])
 
 
-# Компилируем методы из ваших файлов. Сами файлы при этом не меняются:
-# njit(func) создаёт скомпилированную копию функции.
 methods = [
     ("Euler", njit(euler)),
     ("Euler-Cromer", njit(euler_kromer)),
@@ -76,12 +67,12 @@ parameters = [
 ]
 
 
-# ============================================================
-# Поиск локальных максимумов
-# ============================================================
 
 @njit(cache=True)
 def find_extrema(x, transient, out):
+    """
+    Поиск локальных максимумов
+    """
     cut = int(round(len(x) * transient))
     x_cut = x[cut:]
 
@@ -94,14 +85,12 @@ def find_extrema(x, transient, out):
     return cnt
 
 
-# ============================================================
-# Прогон метода по всем значениям параметра (параллельно по ядрам).
-# За один прогон сразу собираются максимумы x, y и z.
-# ============================================================
-
 @njit(parallel=True)
 def scan(method, f, values, which, u0, t1, h,
          a1_0, a2_0, a3_0, transient, max_peaks):
+    """
+    Прогон метода по всем значениям параметра
+    """
     n = values.shape[0]
     buf = np.empty((3, n, max_peaks))
     counts = np.zeros((3, n), dtype=np.int64)
@@ -156,10 +145,6 @@ def run_scan(method, which, values):
     return result
 
 
-# ============================================================
-# Построение графика
-# ============================================================
-
 def plot_bifurcation(method_name, parameter_name, params,
                      var_name, folder, ylim, mp, mx, rp, rx):
     plt.figure(figsize=(10, 6))
@@ -193,15 +178,9 @@ def plot_bifurcation(method_name, parameter_name, params,
     print(f"График сохранен: {filepath}")
 
 
-# ============================================================
-# Запуск
-# ============================================================
-
 if __name__ == "__main__":
 
     for which, (parameter_name, params) in enumerate(parameters):
-
-        # RK4 не зависит от исследуемого метода -> считаем один раз на параметр
         print(f"RK4, параметр {parameter_name}...")
         rk4_res = run_scan(rk4_jit, which, params)
 
